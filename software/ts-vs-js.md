@@ -1,11 +1,12 @@
 # TypeScript vs modern JavaScript syntax
 
-> If it disappears when you rename the file from `.ts` to `.js`, it's TypeScript. Otherwise, it's probably modern JavaScript.
+This page helps developers familiar with old-school JavaScript determine whether a piece of syntax belongs to modern
+JavaScript or is TypeScript-specific.
 
 Some common examples:
 
 | Feature                              | JavaScript    | TypeScript |
-| ------------------------------------ | ------------- | ---------- |
+|--------------------------------------|---------------|------------|
 | `async/await`                        | ✅             | ✅          |
 | Arrow functions `() => {}`           | ✅             | ✅          |
 | Classes                              | ✅             | ✅          |
