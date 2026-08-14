@@ -29,7 +29,7 @@ Input (direct user input, or indirect via retrieved content/tool output/images/m
 - RAG corpus poisoning: as few as 5 poisoned documents reached ~90% attack success against a knowledge base of millions of texts.
 - Multimodal/steganographic: instructions embedded in an image below the human visual threshold are extracted by the vision encoder and change model behavior.
 - Invisible-Unicode exfiltration: zero-width/variation-selector characters smuggle instructions or exfiltrate bytes in benign-looking text (2024 M365 Copilot ASCII-smuggling PoC exfiltrated a Slack MFA code).
-- Agentic destructive execution: a destructive system prompt was committed to the Amazon Q VS Code extension repo (AWS reverted it); separately a runtime injection caused Amazon Q to execute arbitrary code.
+- Agentic destructive execution: a destructive system prompt was committed to the Amazon Q VS Code extension repo (AWS reverted it, though the committed code failed to execute due to a syntax error); separately a runtime injection caused Amazon Q to execute arbitrary code.
 
 **Prevention**
 
