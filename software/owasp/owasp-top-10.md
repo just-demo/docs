@@ -24,19 +24,15 @@ Users can perform actions or view data outside their intended permissions — vi
 **Examples**
 
 - Unverified parameter tampering in an SQL lookup: `pstmt.setString(1, request.getParameter("acct"))` — attacker edits the URL to `https://example.com/app/accountInfo?acct=notmyacct` and reads another user's account since there's no ownership check.
-- Forced browsing to an admin URL: comparing `https://example.com/app/getappInfo` vs `https://example.com/app/admin_getappInfo` — if either is reachable by an unauthenticated or non-admin user, that's the flaw.
 - Access control enforced only in front-end JS blocks the browser from reaching `.../admin_getappInfo`, but `curl https://example.com/app/admin_getappInfo` bypasses it completely since nothing checks server-side.
 
 **Prevention**
 
 - Deny by default for anything non-public; enforce checks server-side, never trust the client.
 - Enforce record ownership instead of unrestricted CRUD.
-- Minimize/centralize CORS config instead of ad-hoc per-endpoint.
-- Disable directory listing; remove backup/metadata files from web roots.
 - Rate-limit APIs to blunt automated probing.
 - Invalidate sessions server-side on logout; use short-lived JWTs + refresh tokens.
 - Log and alert on access-control failures.
-- Cover access control with automated tests, not just manual review.
 
 ## A02: Security Misconfiguration
 
@@ -45,8 +41,6 @@ Insecure defaults, unnecessary enabled features, unpatched systems, verbose erro
 **Examples**
 
 - Sample apps with known flaws left on production servers; default admin accounts never had their credentials changed, so attackers log into the admin console with the defaults.
-- Directory listing left enabled lets attackers enumerate files, download compiled classes, decompile them, and hunt for access-control bugs.
-- Verbose error pages return full stack traces to users, exposing component versions and internals useful for further attacks.
 - Cloud storage left at its default, overly permissive sharing settings exposes data to the public internet.
 
 **Prevention**
@@ -54,9 +48,7 @@ Insecure defaults, unnecessary enabled features, unpatched systems, verbose erro
 - Automate a repeatable hardening process for every environment.
 - Ship minimal platforms — no unused features, samples, or docs in production.
 - Review/update configs (including cloud storage permissions) as part of patch management.
-- Segment architecture so a misconfiguration in one component/tenant doesn't cascade.
 - Send security headers (CSP, HSTS, etc.) by default.
-- Automate configuration verification; manually audit at least annually if not.
 - Prefer identity federation and short-lived credentials over static embedded secrets.
 
 ## A03: Software Supply Chain Failures
@@ -66,8 +58,6 @@ Vulnerabilities or malicious changes introduced through third-party dependencies
 **Examples**
 
 - SolarWinds (2019): a trusted vendor was compromised with malware; the malicious update alone compromised ~18,000 organizations that upgraded.
-- Bybit theft (2025, $1.5B): a supply-chain attack embedded in wallet software that only activated maliciously when the target wallet was actually being used.
-- Shai-Hulud npm worm (2025): the first successful self-propagating npm worm — seeded malicious versions of popular packages with a post-install script that harvested and exfiltrated secrets to public GitHub repos, auto-detected any npm tokens on the victim's machine, and used them to push malicious versions of every package it could reach; spread to 500+ package versions before npm stopped it.
 - Vulnerable components run with the app's own privileges, so a flaw in any one is high-impact: CVE-2017-5638 (Apache Struts 2 RCE) and CVE-2021-44228 "Log4Shell" (Apache Log4j RCE) are both blamed for major breaches, ransomware, and cryptomining campaigns.
 
 **Prevention**
@@ -76,8 +66,6 @@ Vulnerabilities or malicious changes introduced through third-party dependencies
 - Continuously monitor CVE feeds for components in use.
 - Pull components only from official, trusted sources over secure connections.
 - Enforce rigorous change management across CI/CD, repos, and dev tooling.
-- Require separation of duties — no single person can push straight to production.
-- Roll out patches via staged deployment rather than all-at-once.
 - Harden supply-chain systems themselves with MFA, access controls, and signed artifacts.
 
 ## A04: Cryptographic Failures
@@ -91,20 +79,11 @@ Sensitive data exposed due to missing encryption, weak/outdated algorithms, poor
 
 **Prevention**
 
-- Classify data by sensitivity; know what actually needs protecting.
 - Store sensitive keys in an HSM (hardware or cloud-based).
 - Use well-vetted crypto library implementations, not homegrown crypto.
-- Minimize what sensitive data you store; discard promptly or tokenize (PCI DSS style).
 - Encrypt sensitive data at rest with strong, current algorithms and proper key management.
 - Encrypt data in transit: TLS 1.2+, forward secrecy, HSTS to force HTTPS.
-- Disable caching of sensitive responses at CDN/server/app layers.
-- Avoid unencrypted protocols for sensitive data (plain FTP, SMTP, etc.).
 - Hash passwords with strong adaptive salted algorithms (Argon2, scrypt, PBKDF2-HMAC-SHA-512).
-- Use cryptographically secure, non-reused IVs; prefer authenticated encryption.
-- Generate keys with proper CSPRNGs; avoid predictable seeding.
-- Avoid deprecated primitives: MD5, SHA1, CBC mode, PKCS#1 v1.5.
-- Have security specialists review crypto configuration.
-- Start planning for post-quantum crypto migration (target: by end of 2030).
 
 ## A05: Injection
 
@@ -113,7 +92,6 @@ Untrusted input is passed to an interpreter (SQL, OS shell, LDAP, ORM/HQL, expre
 **Examples**
 
 - SQL injection: `"SELECT * FROM accounts WHERE custID='" + request.getParameter("id") + "'"` with request `.../accountView?id=' OR '1'='1` turns the WHERE clause into a tautology and dumps every row instead of one customer's.
-- ORM/HQL injection: the same pattern against a Hibernate query — `"FROM accounts WHERE custID='" + request.getParameter("id") + "'"` — payload `' OR custID IS NOT NULL OR custID='` dumps every account, showing ORMs aren't automatically safe if input is still concatenated in.
 - OS command injection: `Runtime.getRuntime().exec("nslookup " + request.getParameter("domain"))` — payload `example.com; cat /etc/passwd` runs an arbitrary shell command appended after the `;`.
 
 **Prevention**
@@ -130,19 +108,15 @@ Missing or ineffective security controls baked into the architecture itself — 
 **Examples**
 
 - Credential recovery via security questions — prohibited by NIST 800-63b, OWASP ASVS, and the OWASP Top 10 itself, since answers aren't reliable identity evidence (more than one person can know them). The fix is removing the feature and redesigning recovery, not patching it.
-- A cinema chain's group-booking flow caps a single booking at 15 seats before requiring a deposit — but nothing stops a scripted attacker from booking 600 seats across every cinema at once in a handful of requests, since the limit was never threat-modeled against automation.
 - An e-commerce retailer with no anti-bot design lets scalper bots buy out all high-end video cards within seconds of stock going live, to resell at markup — hurting the manufacturer, the retailer's reputation, and real customers; countered by rules like flagging purchases completed within seconds of availability.
 
 **Prevention**
 
 - Build a secure development lifecycle with AppSec involvement on security/privacy-sensitive features.
-- Maintain a library of vetted, reusable secure design patterns and components.
 - Threat-model authentication, access control, and other critical/business-logic flows.
 - Bake security requirements into user stories from the start.
 - Validate input/business rules at every application tier, not just the edge.
 - Write tests (unit/integration) that explicitly validate against the threat model.
-- Define both use-cases and misuse-cases per tier.
-- Segregate system/network layers by exposure level; enforce tenant isolation.
 
 ## A07: Authentication Failures
 
@@ -151,21 +125,15 @@ Weaknesses in login, credential storage, session, or MFA handling let an attacke
 **Examples**
 
 - Credential stuffing and "hybrid" password spraying: attackers try known username/password pairs and pattern-incremented guesses (e.g. `Winter2025` → `Winter2026`); without anti-automation defenses, the login endpoint becomes a "password oracle" confirming which guesses are valid.
-- Most authentication breaches trace back to password-only auth; mandatory rotation policies backfire by pushing users toward reused or weakened passwords — NIST 800-63 recommends dropping forced rotation and enforcing MFA on critical systems instead.
 - Broken session timeout / no Single Logout on SSO: closing a browser tab without logging out leaves the session live; on SSO especially, a user may believe they've logged out of "the app" while every other federated app under that SSO session stays authenticated for whoever uses the machine next.
 
 **Prevention**
 
 - Enforce MFA everywhere feasible.
-- Encourage password managers; don't block long/random passwords.
 - Never ship default credentials.
 - Check new passwords against top-10k weak-password and known-breach lists.
-- Follow NIST 800-63b guidance; don't force periodic rotation without cause.
-- Harden registration/recovery flows against account enumeration.
 - Rate-limit/lock out failed logins, with logging and alerting.
 - Use secure server-side session management with high-entropy random session IDs.
-- Prefer established auth frameworks/libraries over rolling your own.
-- Validate JWT claims fully — audience, issuer, scopes — not just the signature.
 
 ## A08: Software or Data Integrity Failures
 
@@ -173,8 +141,6 @@ Code, CI/CD pipelines, or serialized data are trusted without verifying they wer
 
 **Examples**
 
-- A support subdomain is mapped through an external provider such that the browser sends the main domain's cookies — including auth tokens — to that third party; anyone with access to the support provider's infrastructure can steal every user's cookies and hijack sessions.
-- Router / set-top-box / IoT firmware ships without signed-update verification; unsigned firmware is "a growing target for attackers," with little fix beyond waiting for vulnerable versions to age out.
 - A developer pulls a package from an unofficial website instead of a trusted registry; with no cryptographic signature there's no way to verify integrity, and the package turns out to include malicious code.
 - A React front-end exchanges serialized user state with Spring Boot microservices; an attacker recognizes the `rO0` (base64-encoded Java-object) signature, runs it through a Java Deserialization Scanner, and achieves remote code execution on the server.
 
@@ -193,16 +159,13 @@ Without adequate logging, monitoring, and alerting, breaches go undetected and i
 **Examples**
 
 - A children's health plan had no monitoring or logging in place; an external party had to inform them that an attacker accessed and modified records for 3.5M+ children — the breach may have run since 2013, undetected for over 7 years.
-- A major Indian airline exposed 10+ years of passenger data, including passport and credit card details, at a third-party cloud host — discovered only when the cloud provider eventually reported the compromise.
 - A major European airline suffered a GDPR-reportable breach via vulnerabilities in its payment application, with 400,000+ customer payment records harvested; the regulator fined the airline £20 million.
 
 **Prevention**
 
 - Log all security-relevant events consistently (logins, failed attempts, high-value transactions).
-- Emit logs in formats compatible with standard log-management tooling.
-- Encode log data properly to prevent log-injection attacks.
-- Use append-only/integrity-protected audit trails.
 - Define real monitoring/alerting use cases with response playbooks, not just raw log collection.
+- Use append-only/integrity-protected audit trails.
 - Back up logs and protect them from tampering or deletion.
 - Have an incident response plan aligned with a standard (e.g. NIST 800-61).
 
@@ -212,7 +175,6 @@ Applications fail to prevent, detect, or properly respond to unusual/error condi
 
 **Examples**
 
-- Resource exhaustion (DoS): a file-upload handler catches exceptions but never releases the resources/locks it was holding when one occurs — each failed upload leaks a little more capacity until the app runs out and falls over.
 - Sensitive data exposure: database errors are returned to the user with the full underlying error instead of a generic message; attackers deliberately trigger errors as reconnaissance to craft sharper follow-up attacks like SQL injection.
 - Financial transaction compromise: a multi-step transaction (debit → credit → log) has no proper rollback; an attacker interrupts it mid-sequence (e.g. via network disruption), and the missing atomicity lets them drain an account or duplicate a transfer through the resulting race condition / incomplete error handling.
 
@@ -220,8 +182,6 @@ Applications fail to prevent, detect, or properly respond to unusual/error condi
 
 - Catch exceptions at their source and handle them meaningfully, not just swallow them.
 - Fail closed: roll back incomplete transactions entirely rather than partial recovery.
-- Centralize error handling for consistent behavior app-wide.
 - Add rate limiting, resource quotas, and throttling to blunt resource-exhaustion attacks.
 - Log and alert on repeated errors — they often indicate an attack in progress.
 - Apply strict input validation plus a global exception handler as a last-resort fallback.
-- Include failure-mode threat modeling in design/security reviews.
