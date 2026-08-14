@@ -1,6 +1,6 @@
 # OWASP Top 10 (2025)
 
-Interview-prep cheat sheet. Source: https://owasp.org/Top10/2025/
+Summary of: https://owasp.org/Top10/2025/
 
 | # | Vulnerability | Examples | Prevention | What it is |
 | --- | --- | --- | --- | --- |
