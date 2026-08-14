@@ -1,0 +1,16 @@
+# OWASP Top 10 (2025)
+
+Quick-reference cheat sheet for interview prep. Source: https://owasp.org/Top10/2025/
+
+| # | Vulnerability | What it is | Example | Prevention |
+|---|---|---|---|---|
+| A01 | **Broken Access Control** | Users can act outside their intended permissions — view/edit data or perform actions they shouldn't be able to. | Changing `?id=123` to `?id=124` in a URL to view another user's invoice (IDOR). | Enforce access checks server-side on every request, deny by default, use RBAC, disable directory listing. |
+| A02 | **Security Misconfiguration** | Insecure defaults, unnecessary features enabled, verbose errors, or missing hardening. | Default admin credentials left on a cloud console; stack traces shown to end users. | Harden and automate configs, disable unused features, patch regularly, generic error messages to users. |
+| A03 | **Software Supply Chain Failures** | Vulnerable or malicious third-party dependencies, tools, or vendors compromise the app. | SolarWinds breach (2019): malicious updates from a trusted vendor infected ~18,000 orgs. | Maintain an SBOM, use trusted sources only, monitor CVEs, sign artifacts, enforce CI/CD change management. |
+| A04 | **Cryptographic Failures** | Sensitive data exposed due to weak, missing, or misused encryption. | Passwords hashed with MD5, or data sent over plain HTTP instead of TLS. | Encrypt data at rest and in transit, use strong up-to-date algorithms, avoid storing data you don't need. |
+| A05 | **Injection** | Untrusted input is executed as part of a command or query. | SQL injection via an unsanitized login form (`' OR 1=1 --`). | Parameterized queries / prepared statements, input validation, ORMs, escape special characters. |
+| A06 | **Insecure Design** | Security flaws baked into the architecture itself, not just a coding bug. | No rate limiting on password reset, allowing brute force by design. | Threat modeling, secure design patterns, security requirements defined up front. |
+| A07 | **Authentication Failures** | Weaknesses in login, session, or credential handling let attackers assume other identities. | No account lockout, enabling credential-stuffing attacks; predictable session IDs. | MFA, strong password policies, rate-limit/lockout on login, secure session management. |
+| A08 | **Software or Data Integrity Failures** | Code, CI/CD pipelines, or serialized data aren't verified for integrity, allowing tampering. | Insecure deserialization executing attacker-controlled code; unsigned auto-updates. | Verify digital signatures, use trusted repositories, checksums/integrity checks, secure CI/CD pipeline. |
+| A09 | **Security Logging and Alerting Failures** | Insufficient logging/monitoring means breaches go undetected and unresolved. | A health provider's breach of 3.5M records went undetected for 7+ years. | Log security-relevant events, protect log integrity, set up alerting and an incident response plan. |
+| A10 | **Mishandling of Exceptional Conditions** | Poor error/exception handling causes crashes, data leaks, or exploitable failure states. | Verbose DB error messages leaking schema details, aiding further attacks. | Fail closed, centralize error handling, don't leak internal details, add rate limiting and monitoring. |
