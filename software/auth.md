@@ -2,6 +2,25 @@
 
 ---
 
+### SAML vs OAuth vs OpenID Connect
+
+| Feature         | SAML           | OAuth 2.0     | OpenID Connect (OIDC)          |
+|-----------------|----------------|---------------|--------------------------------|
+| Purpose         | Authentication | Authorization | Authentication + Authorization |
+| Format          | XML            | JSON          | JSON (JWT)                     |
+| Common Use      | Enterprise SSO | API access    | Modern web/mobile apps         |
+| Browser-based   | Yes            | Not primarily | Yes                            |
+| Mobile-friendly | Less           | Yes           | Yes                            |
+
+- SAML answers: "Who is this user?"
+- OAuth 2.0 answers: "What is this application allowed to access?"
+- OpenID Connect builds on OAuth 2.0 to answer: "Who is this user?" using JSON-based tokens.
+
+Although SAML is still widely used, many newer web and mobile applications prefer OpenID Connect (OIDC) because it is
+lighter-weight, uses JSON instead of XML, and is easier to integrate with modern APIs.
+
+---
+
 ### The core roles
 
 | What you called it | Standard name | Also called |
